@@ -1316,6 +1316,15 @@
     </div>
 </section>
 
+<div id="order-success-overlay">
+  <div class="success-content">
+    <i class="fas fa-check-circle"></i>
+    <h2>Order Placed Successfully!</h2>
+    <p>Thank you for shopping with us 🎉</p>
+  </div>
+</div>
+
+
         <section class="view-section" id="orders-view">
             <h2 class="view-title">My Orders</h2>
             <div class="orders-list" id="orders-list"></div>
@@ -1775,20 +1784,31 @@ window.addEventListener("popstate", (event) => {
             // Update the cart view as well
             renderCartView();
         }
-function renderPopularProducts() {
+async function renderPopularProducts() {
     const grid = document.getElementById('popular-products-grid');
     grid.innerHTML = '';
 
-    // Sort products by number of times bought (you can adjust logic)
-    const popular = [...appState.products]
-        .sort((a, b) => (b.buyCount || 0) - (a.buyCount || 0))
-        .slice(0, 6); // Top 6 products
+    // Fetch buy counts separately
+    const snapshot = await db.ref('popularProducts').once('value');
+    const buyCounts = snapshot.val() || {};
+
+    // Attach buyCount from separate node
+    const productsWithCounts = appState.products.map(p => ({
+        ...p,
+        buyCount: buyCounts[p.id]?.buyCount || 0
+    }));
+
+    // Sort by buyCount
+    const popular = productsWithCounts
+        .sort((a, b) => b.buyCount - a.buyCount)
+        .slice(0, 6);
 
     if (popular.length === 0) {
         grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1; color:#777;">No popular products yet.</p>';
         return;
     }
 
+    // Render cards
     popular.forEach(product => {
         const card = document.createElement('div');
         card.classList.add('product-card');
@@ -1805,9 +1825,8 @@ function renderPopularProducts() {
             e.stopPropagation();
             addToCart({ ...product, category: appState.currentCategory, id: product.id });
 
-            // Track product buy count in Firebase
-            const ref = db.ref(`products/${product.id}/buyCount`);
-            ref.transaction(count => (count || 0) + 1);
+            // Update only in popularProducts
+            db.ref(`popularProducts/${product.id}/buyCount`).transaction(count => (count || 0) + 1);
         });
         grid.appendChild(card);
     });
@@ -2010,27 +2029,33 @@ elements.checkoutForm.addEventListener('submit', async (e) => {
 
         await db.ref(`orders/${orderId}`).set(orderData);
 
-        appState.cart = {};
-        localStorage.removeItem('cart');
-        renderCart();
-
-        const overlay = document.getElementById('order-success-overlay');
-        overlay.classList.add('active');
-
-        // Redirect to orders view after 5 seconds
-        setTimeout(() => {
-            overlay.classList.remove('active');
-            switchView('orders-view');
-            loadOrders();
-        }, 10000);
-
-    } catch (error) {
-        showToast('Order failed: ' + error.message);
-        console.error('Order placement failed:', error);
-    } finally {
-        hideLoader();
-    }
+// ✅ Update global popularProducts buyCount for each purchased item
+items.forEach(item => {
+    db.ref(`popularProducts/${item.id}/buyCount`).transaction(count => (count || 0) + item.qty);
 });
+
+appState.cart = {};
+localStorage.removeItem('cart');
+renderCart();
+
+const overlay = document.getElementById('order-success-overlay');
+overlay.classList.add('active');
+
+// Redirect to orders view after 5 seconds
+setTimeout(() => {
+    overlay.classList.remove('active');
+    switchView('orders-view');
+    loadOrders();
+}, 10000);
+
+} catch (error) {
+    showToast('Order failed: ' + error.message);
+    console.error('Order placement failed:', error);
+} finally {
+    hideLoader();
+}
+});
+
 
     
 
@@ -2726,7 +2751,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <script>
         document.querySelectorAll('.footer-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', () => {A
                 const view = btn.getAttribute('data-view');
                 if(view === 'cart') {
                     renderCartView();
