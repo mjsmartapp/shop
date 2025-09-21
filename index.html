@@ -2171,6 +2171,50 @@ function resetAutoScroll() {
             });
         }
 
+	// your existing functions ... renderCategories, loadProducts, etc.
+
+// ✅ Add here:
+async function loadPopularProducts() {
+    try {
+        showLoader();
+        const snapshot = await db.ref('orders').once('value');
+        const orders = snapshot.val() || {};
+
+        const counts = {};
+        Object.values(orders).forEach(order => {
+            if (order.items) {
+                order.items.forEach(item => {
+                    counts[item.productId] = (counts[item.productId] || 0) + item.qty;
+                });
+            }
+        });
+
+        appState.products = appState.products.map(p => ({
+            ...p,
+            buyCount: counts[p.id] || 0
+        }));
+
+        renderPopularProducts();
+    } catch (err) {
+        console.error("Failed to load popular products:", err);
+    } finally {
+        hideLoader();
+    }
+}
+
+async function initHome() {
+    await loadProducts();        // existing loader
+    await loadPopularProducts(); // NEW
+    renderHomeProducts();
+    loadAds();
+    renderCategories();
+}
+
+window.addEventListener("load", () => {
+    initHome();
+});
+
+
         // Products View
         async function loadProducts(category = null) {
             showLoader();
