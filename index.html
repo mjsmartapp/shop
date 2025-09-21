@@ -1110,6 +1110,53 @@
                 justify-self: end;
                 align-self: start;
             }
+	#order-success-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255,255,255,0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 5000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease;
+}
+
+#order-success-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+#order-success-overlay .success-content {
+  text-align: center;
+  animation: popIn 0.6s ease forwards;
+}
+
+#order-success-overlay i {
+  font-size: 5rem;
+  color: #4caf50;
+  animation: bounce 1s infinite;
+}
+
+#order-success-overlay h2 {
+  margin-top: 1rem;
+  font-size: 2rem;
+  color: #333;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -1235,40 +1282,48 @@
         </section>
 
         <section class="view-section" id="cart-view">
-            <h2 class="view-title">My Cart</h2>
-            <div class="cart-view-container">
-                <div class="cart-view-items" id="cart-view-items">
-                    </div>
-                <div class="cart-view-summary" id="cart-view-summary">
-                    <h3>Checkout</h3>
-                    <div class="cart-summary-details">
-                        <div>
-                            <span>Subtotal:</span>
-                            <span id="checkout-subtotal">₹0.00</span>
-                        </div>
-                        <div>
-                            <span>Delivery Charges:</span>
-                            <span id="delivery-charges">₹50.00</span>
-                        </div>
-                        <div class="total">
-                            <span>Total:</span>
-                            <span id="checkout-total">₹0.00</span>
-                        </div>
-                    </div>
-                    <form class="checkout-form" id="checkout-form">
-                        <label>Name:</label>
-                        <input type="text" id="checkout-name" required>
-                        <label>Phone:</label>
-                        <input type="text" id="checkout-phone" required>
-                        <label>Address:</label>
-                        <input type="text" id="checkout-address" required>
-                        <label>Email:</label>
-                        <input type="email" id="checkout-email" required>
-                        <button type="submit" class="checkout-btn">Place Order</button>
-                    </form>
+    <h2 class="view-title">My Cart</h2>
+    <div class="cart-view-container">
+        <div class="cart-view-items" id="cart-view-items"></div>
+        <div class="cart-view-summary" id="cart-view-summary">
+            <h3>Checkout</h3>
+            <div class="cart-summary-details">
+                <div>
+                    <span>Subtotal:</span>
+                    <span id="checkout-subtotal">₹0.00</span>
+                </div>
+                <div>
+                    <span>Delivery Charges:</span>
+                    <span id="delivery-charges">₹50.00</span>
+                </div>
+                <div class="total">
+                    <span>Total:</span>
+                    <span id="checkout-total">₹0.00</span>
                 </div>
             </div>
-        </section>
+            <form class="checkout-form" id="checkout-form">
+                <label>Name:</label>
+                <input type="text" id="checkout-name" required>
+                <label>Phone:</label>
+                <input type="text" id="checkout-phone" required>
+                <label>Address:</label>
+                <input type="text" id="checkout-address" required>
+                <label>Email:</label>
+                <input type="email" id="checkout-email" required>
+                <button type="submit" class="checkout-btn">Place Order</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- ✅ Place this OUTSIDE the section -->
+<div id="order-success-overlay">
+  <div class="success-content">
+    <i class="fas fa-check-circle"></i>
+    <h2>Order Placed Successfully!</h2>
+  </div>
+</div>
+
 
         <section class="view-section" id="orders-view">
             <h2 class="view-title">My Orders</h2>
@@ -1868,118 +1923,125 @@ function renderPopularProducts() {
         }
 
         elements.checkoutBtn.addEventListener('click', () => {
-            if (!appState.currentUser) {
-                showToast('Please login to checkout.');
-                elements.loginModal.classList.add('open');
-                elements.cartDrawer.classList.remove('open');
-                return;
-            }
-            switchView('cart-view');
-            elements.cartDrawer.classList.remove('open');
-            loadUserProfileForCheckout();
-        });
+    if (!appState.currentUser) {
+        showToast('Please login to checkout.');
+        elements.loginModal.classList.add('open');
+        elements.cartDrawer.classList.remove('open');
+        return;
+    }
+    switchView('cart-view');
+    elements.cartDrawer.classList.remove('open');
+    loadUserProfileForCheckout();
+});
 
-        async function loadUserProfileForCheckout() {
-            if (!appState.currentUser) return;
-            const snapshot = await db.ref(`users/${appState.currentUser.uid}`).once('value');
-            const profile = snapshot.val();
-            if (profile) {
-                elements.checkoutName.value = profile.name || '';
-                elements.checkoutPhone.value = profile.phone || '';
-                elements.checkoutAddress.value = profile.address || '';
-                elements.checkoutEmail.value = profile.email || '';
+async function loadUserProfileForCheckout() {
+    if (!appState.currentUser) return;
+    const snapshot = await db.ref(`users/${appState.currentUser.uid}`).once('value');
+    const profile = snapshot.val();
+    if (profile) {
+        elements.checkoutName.value = profile.name || '';
+        elements.checkoutPhone.value = profile.phone || '';
+        elements.checkoutAddress.value = profile.address || '';
+        elements.checkoutEmail.value = profile.email || '';
+    }
+    renderCartView();
+}
+
+elements.checkoutForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const items = Object.values(appState.cart);
+    if (items.length === 0) {
+        showToast('Your cart is empty.');
+        return;
+    }
+
+    try {
+        showLoader();
+        const orderId = db.ref('orders').push().key;
+        const customerName = elements.checkoutName.value;
+        const phone = elements.checkoutPhone.value;
+        const address = elements.checkoutAddress.value;
+        const email = elements.checkoutEmail.value;
+
+        const subtotal = items.reduce((sum, item) => sum + (Number(item.price) || 0) * item.qty, 0);
+        const total = subtotal + DELIVERY_CHARGE;
+
+        // Generate QR code and get data URL
+        qrcode.makeCode(orderId);
+        await new Promise(res => setTimeout(res, 250));
+        const qrImg = qrcodeContainer.querySelector('img');
+        const qrCodeDataURL = qrImg ? qrImg.src : '';
+
+        // Use the location stored in appState
+        let lat = appState.currentLocation.lat;
+        let lng = appState.currentLocation.lng;
+
+        // If location is not set for some reason, try to get it
+        if (lat === null || lng === null) {
+            try {
+                const loc = await getCurrentLocation(6000);
+                lat = loc.lat;
+                lng = loc.lng;
+            } catch (err) {
+                lat = null;
+                lng = null;
             }
-            renderCartView();
         }
 
-        elements.checkoutForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const items = Object.values(appState.cart);
-            if (items.length === 0) {
-                showToast('Your cart is empty.');
-                return;
-            }
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000);
 
-            try {
-                showLoader();
-                const orderId = db.ref('orders').push().key;
-                const customerName = elements.checkoutName.value;
-                const phone = elements.checkoutPhone.value;
-                const address = elements.checkoutAddress.value;
-                const email = elements.checkoutEmail.value;
+        const orderData = {
+            id: orderId,
+            orderId: orderId,
+            userId: appState.currentUser.uid,
+            customerName,
+            phone,
+            email,
+            address,
+            lat,
+            lng,
+            items: items.map(item => ({
+                productId: item.id,
+                name: item.name,
+                qty: item.qty,
+                unit: item.unit,
+                price: Number(item.price) || 0
+            })),
+            subtotal,
+            deliveryCharge: DELIVERY_CHARGE,
+            total,
+            status: 'PENDING',
+            qrCode: qrCodeDataURL,
+            otp,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        };
 
-                const subtotal = items.reduce((sum, item) => sum + (Number(item.price) || 0) * item.qty, 0);
-                const total = subtotal + DELIVERY_CHARGE;
+        await db.ref(`orders/${orderId}`).set(orderData);
 
-                // Generate QR code and get data URL
-                qrcode.makeCode(orderId);
-                // Wait a tick for QR generation (the library renders an <img> for data url)
-                await new Promise(res => setTimeout(res, 250));
-                const qrImg = qrcodeContainer.querySelector('img');
-                const qrCodeDataURL = qrImg ? qrImg.src : '';
+        appState.cart = {};
+        localStorage.removeItem('cart');
+        renderCart();
 
-                // Use the location stored in appState
-                let lat = appState.currentLocation.lat;
-                let lng = appState.currentLocation.lng;
+        const overlay = document.getElementById('order-success-overlay');
+        overlay.classList.add('active');
 
-                // If location is not set for some reason, try to get it
-                if (lat === null || lng === null) {
-                    try {
-                        const loc = await getCurrentLocation(6000);
-                        lat = loc.lat;
-                        lng = loc.lng;
-                    } catch (err) {
-                        lat = null;
-                        lng = null;
-                    }
-                }
+        // Redirect to orders view after 5 seconds
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            switchView('orders-view');
+            loadOrders();
+        }, 5000);
 
-                // *** NEW: Generate 6-digit OTP and save with order (will be shown only when status is SHIPPED) ***
-                const otp = Math.floor(100000 + Math.random() * 900000);
+    } catch (error) {
+        showToast('Order failed: ' + error.message);
+        console.error('Order placement failed:', error);
+    } finally {
+        hideLoader();
+    }
+});
 
-                const orderData = {
-                    id: orderId,
-                    orderId: orderId,
-                    userId: appState.currentUser.uid,
-                    customerName,
-                    phone,
-                    email,
-                    address,
-                    lat,
-                    lng,
-                    items: items.map(item => ({
-                        productId: item.id,
-                        name: item.name,
-                        qty: item.qty,
-                        unit: item.unit,
-                        price: Number(item.price) || 0
-                    })),
-                    subtotal,
-                    deliveryCharge: DELIVERY_CHARGE,
-                    total,
-                    status: 'PENDING',
-                    qrCode: qrCodeDataURL,
-                    otp, // <-- OTP stored here
-                    createdAt: firebase.database.ServerValue.TIMESTAMP
-                };
-
-                await db.ref(`orders/${orderId}`).set(orderData);
-
-                appState.cart = {};
-                localStorage.removeItem('cart');
-                renderCart();
-
-                showToast('Order placed successfully!');
-                switchView('orders-view');
-                loadOrders();
-
-            } catch (error) {
-                showToast('Order failed: ' + error.message);
-                console.error('Order placement failed:', error);
-            } finally {
-                hideLoader();
-            }
-        });
+    
 
         // Home View
         async function loadAds() {
