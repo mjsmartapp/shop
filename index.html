@@ -1374,7 +1374,7 @@
             <button id="save-location-btn" class="change-location-btn">Save Location</button>
         </section>
     </main>
-    <div id="qrcode-temp-container" style="display:none;"></div>
+    <div id="qrcode-temp-container" style="position:absolute;left:-9999px;top:-9999px;"></div>
 
     <script>
         const firebaseConfig = {
@@ -1976,11 +1976,24 @@ elements.checkoutForm.addEventListener('submit', async (e) => {
         const subtotal = items.reduce((sum, item) => sum + (Number(item.price) || 0) * item.qty, 0);
         const total = subtotal + DELIVERY_CHARGE;
 
-        // Generate QR code and get data URL
-        qrcode.makeCode(orderId);
-        await new Promise(res => setTimeout(res, 250));
-        const qrImg = qrcodeContainer.querySelector('img');
-        const qrCodeDataURL = qrImg ? qrImg.src : '';
+        // ✅ Generate QR code directly (works on desktop + mobile)
+        const qrCodeDataURL = await new Promise(resolve => {
+            const qr = new QRCode(document.createElement("div"), {
+                text: orderId,
+                width: 128,
+                height: 128,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+            setTimeout(() => {
+                const img = qr._el.querySelector("img");
+                const canvas = qr._el.querySelector("canvas");
+                if (canvas) resolve(canvas.toDataURL("image/png"));
+                else if (img) resolve(img.src);
+                else resolve("");
+            }, 500);
+        });
 
         // Use the location stored in appState
         let lat = appState.currentLocation.lat;
@@ -2029,31 +2042,32 @@ elements.checkoutForm.addEventListener('submit', async (e) => {
 
         await db.ref(`orders/${orderId}`).set(orderData);
 
-// ✅ Update global popularProducts buyCount for each purchased item
-items.forEach(item => {
-    db.ref(`popularProducts/${item.id}/buyCount`).transaction(count => (count || 0) + item.qty);
-});
+        // ✅ Update global popularProducts buyCount for each purchased item
+        items.forEach(item => {
+            db.ref(`popularProducts/${item.id}/buyCount`)
+                .transaction(count => (count || 0) + item.qty);
+        });
 
-appState.cart = {};
-localStorage.removeItem('cart');
-renderCart();
+        appState.cart = {};
+        localStorage.removeItem('cart');
+        renderCart();
 
-const overlay = document.getElementById('order-success-overlay');
-overlay.classList.add('active');
+        const overlay = document.getElementById('order-success-overlay');
+        overlay.classList.add('active');
 
-// Redirect to orders view after 5 seconds
-setTimeout(() => {
-    overlay.classList.remove('active');
-    switchView('orders-view');
-    loadOrders();
-}, 10000);
+        // Redirect to orders view after 10 seconds
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            switchView('orders-view');
+            loadOrders();
+        }, 3000);
 
-} catch (error) {
-    showToast('Order failed: ' + error.message);
-    console.error('Order placement failed:', error);
-} finally {
-    hideLoader();
-}
+    } catch (error) {
+        showToast('Order failed: ' + error.message);
+        console.error('Order placement failed:', error);
+    } finally {
+        hideLoader();
+    }
 });
 
 
@@ -2702,79 +2716,79 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
 
     <footer class="footer-bar">
-        <button class="footer-btn" data-view="home"><i class="fas fa-home"></i><span>Home</span></button>
-        <button class="footer-btn" data-view="cart"><i class="fas fa-shopping-cart"></i><span>Cart</span></button>
-        <button class="footer-btn" data-view="orders"><i class="fas fa-receipt"></i><span>Orders</span></button>
-        <button class="footer-btn" data-view="profile"><i class="fas fa-user"></i><span>Profile</span></button>
-    </footer>
+    <button class="footer-btn" data-view="home"><i class="fas fa-home"></i><span>Home</span></button>
+    <button class="footer-btn" data-view="cart"><i class="fas fa-shopping-cart"></i><span>Cart</span></button>
+    <button class="footer-btn" data-view="orders"><i class="fas fa-receipt"></i><span>Orders</span></button>
+    <button class="footer-btn" data-view="profile"><i class="fas fa-user"></i><span>Profile</span></button>
+</footer>
 
-    <style>
-        .footer-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #fff;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0.5rem 0;
-            z-index: 1500;
-        }
-        .footer-btn {
-            background: none;
-            border: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 1rem;
-            color: #333;
-            cursor: pointer;
-            flex: 1;
-        }
-        .footer-btn i {
-            font-size: 1.2rem;
-            margin-bottom: 0.2rem;
-            color: var(--secondary-color);
-        }
-        .footer-btn span {
-            font-size: 0.75rem;
-        }
-        .footer-btn.active, .footer-btn:hover {
-            color: var(--secondary-color);
-        }
-        main {
-            padding-bottom: 4rem; /* Prevent content being hidden under footer */
-        }
-    </style>
+<style>
+    .footer-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 0;
+        z-index: 1500;
+    }
+    .footer-btn {
+        background: none;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 1rem;
+        color: #333;
+        cursor: pointer;
+        flex: 1;
+    }
+    .footer-btn i {
+        font-size: 1.2rem;
+        margin-bottom: 0.2rem;
+        color: var(--secondary-color);
+    }
+    .footer-btn span {
+        font-size: 0.75rem;
+    }
+    .footer-btn.active, .footer-btn:hover {
+        color: var(--secondary-color);
+    }
+    main {
+        padding-bottom: 4rem; /* Prevent content being hidden under footer */
+    }
+</style>
 
-    <script>
-        document.querySelectorAll('.footer-btn').forEach(btn => {
-            btn.addEventListener('click', () => {A
-                const view = btn.getAttribute('data-view');
-                if(view === 'cart') {
-                    renderCartView();
-                } else if(view === 'orders') {
-                    if (!appState.currentUser) {
-                        showToast('Please login to view orders.');
-                        elements.loginModal.classList.add('open');
-                        return;
-                    }
-                    loadOrders();
-                } else if(view === 'profile') {
-                    if (!appState.currentUser) {
-                        showToast('Please login to view your profile.');
-                        elements.loginModal.classList.add('open');
-                        return;
-                    }
-                    loadProfile();
+<script>
+    document.querySelectorAll('.footer-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const view = btn.getAttribute('data-view');
+            if(view === 'cart') {
+                renderCartView();
+            } else if(view === 'orders') {
+                if (!appState.currentUser) {
+                    showToast('Please login to view orders.');
+                    elements.loginModal.classList.add('open');
+                    return;
                 }
-                switchView(view + '-view');
-                document.querySelectorAll('.footer-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
+                loadOrders();
+            } else if(view === 'profile') {
+                if (!appState.currentUser) {
+                    showToast('Please login to view your profile.');
+                    elements.loginModal.classList.add('open');
+                    return;
+                }
+                loadProfile();
+            }
+            switchView(view + '-view');
+            document.querySelectorAll('.footer-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         });
-    </script>
+    });
+</script>
 </body>
 </html>
