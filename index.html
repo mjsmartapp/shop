@@ -1316,15 +1316,6 @@
     </div>
 </section>
 
-<!-- ✅ Place this OUTSIDE the section -->
-<div id="order-success-overlay">
-  <div class="success-content">
-    <i class="fas fa-check-circle"></i>
-    <h2>Order Placed Successfully!</h2>
-  </div>
-</div>
-
-
         <section class="view-section" id="orders-view">
             <h2 class="view-title">My Orders</h2>
             <div class="orders-list" id="orders-list"></div>
@@ -2011,7 +2002,7 @@ elements.checkoutForm.addEventListener('submit', async (e) => {
             subtotal,
             deliveryCharge: DELIVERY_CHARGE,
             total,
-            status: 'PENDING',
+            status: 'ORDER PLACED',
             qrCode: qrCodeDataURL,
             otp,
             createdAt: firebase.database.ServerValue.TIMESTAMP
@@ -2031,7 +2022,7 @@ elements.checkoutForm.addEventListener('submit', async (e) => {
             overlay.classList.remove('active');
             switchView('orders-view');
             loadOrders();
-        }, 5000);
+        }, 10000);
 
     } catch (error) {
         showToast('Order failed: ' + error.message);
