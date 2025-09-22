@@ -1110,6 +1110,75 @@
                 justify-self: end;
                 align-self: start;
             }
+
+	/* === UNIVERSAL CATEGORY STYLE === */
+.category-list {
+  display: none !important;
+}
+
+.category-grid {
+  margin: 1rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+/* Mobile: horizontal scroll, scrollbar hidden */
+@media (max-width: 768px) {
+  .category-grid {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    overflow-x: auto;               /* enable horizontal scroll */
+    -ms-overflow-style: none;       /* hide scrollbar IE/Edge */
+    scrollbar-width: none;          /* hide scrollbar Firefox */
+    scroll-behavior: smooth;        /* smooth manual scroll */
+  }
+
+  .category-grid::-webkit-scrollbar {
+    display: none; /* hide scrollbar Chrome/Safari */
+  }
+
+  .category-card {
+    flex: 0 0 auto;  /* prevent shrinking */
+    min-width: 120px; /* same as grid min */
+  }
+}
+
+/* Category card styles */
+.category-card {
+  background-color: var(--card-background);
+  border-radius: 12px;
+  box-shadow: var(--soft-shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+  cursor: pointer;
+  transition: transform var(--animation-duration), box-shadow var(--animation-duration);
+}
+
+.category-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.category-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.category-card h4 {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+
+
+
 	#order-success-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -1252,127 +1321,123 @@
     <div class="toast-container" id="toast-container"></div>
 
     <main>
-        <section class="view-section active" id="home-view">
-    <div class="hero-banner">
-        <div class="banner-slider" id="banner-slider"></div>
-    	<div class="banner-dots" id="banner-dots"></div>
-    </div>
+    <section class="view-section active" id="home-view">
+        <div class="hero-banner">
+            <div class="banner-slider" id="banner-slider"></div>
+            <div class="banner-dots" id="banner-dots"></div>
+        </div>
+        <div class="category-grid" id="category-list"></div>
+        <div class="products-header">
+            <h2>Popular Products</h2>
+        </div>
+        <div class="products-grid" id="popular-products-grid"></div>
 
-    <!-- Popular Products Section -->
-    <div class="products-header">
-        <h2>Popular Products</h2>
-    </div>
-    <div class="products-grid" id="popular-products-grid"></div>
+        <div class="products-header">
+            <h2>All Products</h2>
+        </div>
+        <div class="products-grid" id="home-products-grid"></div>
+    </section>
 
-    <!-- All Products Section -->
-    <div class="products-header">
-        <h2>All Products</h2>
-    </div>
-    <div class="products-grid" id="home-products-grid"></div>
-</section>
-
-
-
-        <section class="view-section" id="products-view">
-            <div class="products-header">
-                <h2 id="products-title">All Products</h2>
+    <section class="view-section" id="products-view">
+        <div class="products-header">
+            <h2 id="products-title">All Products</h2>
+        </div>
+        <div class="products-grid" id="products-grid"></div>
+    </section>
+    
+    <section class="view-section" id="cart-view">
+        <h2 class="view-title">My Cart</h2>
+        <div class="cart-view-container">
+            <div class="cart-view-items" id="cart-view-items"></div>
+            <div class="cart-view-summary" id="cart-view-summary">
+                <h3>Checkout</h3>
+                <div class="cart-summary-details">
+                    <div>
+                        <span>Subtotal:</span>
+                        <span id="checkout-subtotal">₹0.00</span>
+                    </div>
+                    <div>
+                        <span>Delivery Charges:</span>
+                        <span id="delivery-charges">₹50.00</span>
+                    </div>
+                    <div class="total">
+                        <span>Total:</span>
+                        <span id="checkout-total">₹0.00</span>
+                    </div>
+                </div>
+                <form class="checkout-form" id="checkout-form">
+                    <label>Name:</label>
+                    <input type="text" id="checkout-name" required>
+                    <label>Phone:</label>
+                    <input type="text" id="checkout-phone" required>
+                    <label>Address:</label>
+                    <input type="text" id="checkout-address" required>
+                    <label>Email:</label>
+                    <input type="email" id="checkout-email" required>
+                    <button type="submit" class="checkout-btn">Place Order</button>
+                </form>
             </div>
-            <div class="products-grid" id="products-grid"></div>
-        </section>
+        </div>
+    </section>
 
-        <section class="view-section" id="cart-view">
-    <h2 class="view-title">My Cart</h2>
-    <div class="cart-view-container">
-        <div class="cart-view-items" id="cart-view-items"></div>
-        <div class="cart-view-summary" id="cart-view-summary">
-            <h3>Checkout</h3>
-            <div class="cart-summary-details">
-                <div>
-                    <span>Subtotal:</span>
-                    <span id="checkout-subtotal">₹0.00</span>
-                </div>
-                <div>
-                    <span>Delivery Charges:</span>
-                    <span id="delivery-charges">₹50.00</span>
-                </div>
-                <div class="total">
-                    <span>Total:</span>
-                    <span id="checkout-total">₹0.00</span>
-                </div>
-            </div>
-            <form class="checkout-form" id="checkout-form">
-                <label>Name:</label>
-                <input type="text" id="checkout-name" required>
-                <label>Phone:</label>
-                <input type="text" id="checkout-phone" required>
-                <label>Address:</label>
-                <input type="text" id="checkout-address" required>
-                <label>Email:</label>
-                <input type="email" id="checkout-email" required>
-                <button type="submit" class="checkout-btn">Place Order</button>
-            </form>
+    <div id="order-success-overlay">
+        <div class="success-content">
+            <i class="fas fa-check-circle"></i>
+            <h2>Order Placed Successfully!</h2>
+            <p>Thank you for shopping with us 🎉</p>
         </div>
     </div>
-</section>
-
-<div id="order-success-overlay">
-  <div class="success-content">
-    <i class="fas fa-check-circle"></i>
-    <h2>Order Placed Successfully!</h2>
-    <p>Thank you for shopping with us 🎉</p>
-  </div>
-</div>
 
 
-        <section class="view-section" id="orders-view">
-            <h2 class="view-title">My Orders</h2>
-            <div class="orders-list" id="orders-list"></div>
-        </section>
+    <section class="view-section" id="orders-view">
+        <h2 class="view-title">My Orders</h2>
+        <div class="orders-list" id="orders-list"></div>
+    </section>
 
-        <section class="view-section" id="queries-view">
-            <h2 class="view-title">Queries & Complaints</h2>
-            <div class="queries-container">
-                <form class="queries-form" id="queries-form">
-                    <label>Name</label>
-                    <input type="text" id="query-name" required>
-                    <label>Email</label>
-                    <input type="email" id="query-email" required>
-                    <label>Message</label>
-                    <textarea id="query-message" required></textarea>
-                    <button type="submit">Submit</button>
-                </form>
+    <section class="view-section" id="queries-view">
+        <h2 class="view-title">Queries & Complaints</h2>
+        <div class="queries-container">
+            <form class="queries-form" id="queries-form">
+                <label>Name</label>
+                <input type="text" id="query-name" required>
+                <label>Email</label>
+                <input type="email" id="query-email" required>
+                <label>Message</label>
+                <textarea id="query-message" required></textarea>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="view-section" id="profile-view">
+        <h2 class="view-title">My Profile</h2>
+        <div class="profile-container">
+            <div class="profile-info" id="profile-info">
             </div>
-        </section>
-
-        <section class="view-section" id="profile-view">
-            <h2 class="view-title">My Profile</h2>
-            <div class="profile-container">
-                <div class="profile-info" id="profile-info">
-                </div>
-                <form id="update-profile-form">
-                    <label>Name:</label>
-                    <input type="text" id="update-name" required>
-                    <label>Phone:</label>
-                    <input type="text" id="update-phone" required>
-                    <label>Address:</label>
-                    <input type="text" id="update-address" required>
-                    <button type="submit">Save Changes</button>
-                </form>
-                <div class="profile-buttons">
-                    <button id="edit-profile-btn" class="map-btn">Update Profile</button>
-                    <button id="profile-map-btn" class="map-btn">Update Location</button>
-                    <button id="profile-logout-btn" class="logout-btn">Logout</button>
-                </div>
+            <form id="update-profile-form">
+                <label>Name:</label>
+                <input type="text" id="update-name" required>
+                <label>Phone:</label>
+                <input type="text" id="update-phone" required>
+                <label>Address:</label>
+                <input type="text" id="update-address" required>
+                <button type="submit">Save Changes</button>
+            </form>
+            <div class="profile-buttons">
+                <button id="edit-profile-btn" class="map-btn">Update Profile</button>
+                <button id="profile-map-btn" class="map-btn">Update Location</button>
+                <button id="profile-logout-btn" class="logout-btn">Logout</button>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section class="view-section" id="map-view">
-            <h2 class="view-title">Choose Your Location</h2>
-            <p>Drag the marker to your exact location. This will be used for delivery.</p>
-            <div id="map-container"></div>
-            <button id="save-location-btn" class="change-location-btn">Save Location</button>
-        </section>
-    </main>
+    <section class="view-section" id="map-view">
+        <h2 class="view-title">Choose Your Location</h2>
+        <p>Drag the marker to your exact location. This will be used for delivery.</p>
+        <div id="map-container"></div>
+        <button id="save-location-btn" class="change-location-btn">Save Location</button>
+    </section>
+</main>
     <div id="qrcode-temp-container" style="position:absolute;left:-9999px;top:-9999px;"></div>
 
     <script>
@@ -1427,18 +1492,50 @@
             correctLevel : QRCode.CorrectLevel.H
         });
 
+
+	const grid = document.querySelector('.category-grid');
+let autoScrollSpeed = 0.5; // pixels per frame
+let isUserScrolling = false;
+
+// Auto-scroll function
+function autoScroll() {
+  if (!isUserScrolling) {
+    grid.scrollLeft += autoScrollSpeed;
+
+    // Loop back to start when reaching the end
+    if (grid.scrollLeft >= grid.scrollWidth - grid.clientWidth) {
+      grid.scrollLeft = 0;
+    }
+  }
+  requestAnimationFrame(autoScroll);
+}
+
+// Detect manual scroll
+grid.addEventListener('mousedown', () => isUserScrolling = true);
+grid.addEventListener('touchstart', () => isUserScrolling = true);
+
+// Release manual scroll
+grid.addEventListener('mouseup', () => isUserScrolling = false);
+grid.addEventListener('mouseleave', () => isUserScrolling = false);
+grid.addEventListener('touchend', () => isUserScrolling = false);
+
+// Start auto-scroll
+requestAnimationFrame(autoScroll);
+
+
+
         const appState = {
             currentUser: null,
             cart: JSON.parse(localStorage.getItem('cart')) || {},
             products: [],
             categories: [
-                { id: 'hotel', name: 'Hotel', icon: 'fas fa-utensils' },
+		{ id: 'groceries', name: 'Groceries', icon: 'fas fa-shopping-basket' },
                 { id: 'vegfruits', name: 'Vegetables & Fruits', icon: 'fas fa-carrot' },
+		{ id: 'icejuice', name: 'Ice Cream & Juice', icon: 'fas fa-ice-cream' },
+		{ id: 'snacksmed', name: 'Snacks', icon: 'fas fa-pills' },
+		{ id: 'hotel', name: 'Hotel', icon: 'fas fa-utensils' },
                 { id: 'meat', name: 'Meat', icon: 'fas fa-drumstick-bite' },
-                { id: 'icejuice', name: 'Ice Cream & Juice', icon: 'fas fa-ice-cream' },
-                { id: 'groceries', name: 'Groceries', icon: 'fas fa-shopping-basket' },
-                { id: 'fishes', name: 'Fishes', icon: 'fas fa-fish' },
-                { id: 'snacksmed', name: 'Snacks', icon: 'fas fa-pills' }
+                { id: 'fishes', name: 'Fishes', icon: 'fas fa-fish' }               
             ],
             currentCategory: null,
             ads: [],
@@ -1482,7 +1579,7 @@
             deliveryCharges: document.getElementById('delivery-charges'),
             checkoutTotal: document.getElementById('checkout-total'),
             bannerSlider: document.getElementById('banner-slider'),
-            categoryGrid: document.getElementById('category-grid'),
+            categoryList: document.getElementById('category-list'),
             productsGrid: document.getElementById('products-grid'),
             productsTitle: document.getElementById('products-title'),
             ordersList: document.getElementById('orders-list'),
@@ -2244,28 +2341,30 @@ function resetAutoScroll() {
     bannerResumeTimeout = setTimeout(() => startBannerSlider(), 2500);
 }
 
+function renderCategories(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-        function renderCategories() {
-            elements.categoryGrid.innerHTML = appState.categories.map(cat => `
-                <div class="category-card" data-category="${cat.id}">
-                    <i class="${cat.icon} category-icon"></i>
-                    <h4>${cat.name}</h4>
-                </div>
-            `).join('');
+    container.innerHTML = appState.categories.map(cat => `
+        <div class="category-card" data-category="${cat.id}">
+            <i class="${cat.icon} category-icon"></i>
+            <h4>${cat.name}</h4>
+        </div>
+    `).join('');
 
-            document.querySelectorAll('.category-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    const category = e.currentTarget.dataset.category;
-                    loadProducts(category);
-                    switchView('products-view');
-                });
-            });
-        }
+    container.querySelectorAll('.category-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            const category = e.currentTarget.dataset.category;
+            appState.currentCategory = category;
+            loadProducts(category);
+            switchView('products-view');
+        });
+    });
+}
 
-	// your existing functions ... renderCategories, loadProducts, etc.
 
-// ✅ Add here:
-async function loadPopularProducts() {
+
+	async function loadPopularProducts() {
     try {
         showLoader();
         const snapshot = await db.ref('orders').once('value');
@@ -2294,11 +2393,11 @@ async function loadPopularProducts() {
 }
 
 async function initHome() {
-    await loadProducts();        // existing loader
-    await loadPopularProducts(); // NEW
-    renderHomeProducts();
-    loadAds();
-    renderCategories();
+    await loadProducts();        // load all products
+    await loadPopularProducts(); // load popular products
+    renderHomeProducts();        // render products on home
+    loadAds();                   // load banners/ads
+    renderCategories('category-list'); // render horizontal categories in Home view
 }
 
 window.addEventListener("load", () => {
@@ -2596,8 +2695,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAds();
     renderCart();
     loadProducts().then(() => {
-        // Show products on home page after they are loaded
-        renderHomeProducts();
+    renderHomeProducts();
+    renderCategories();
     });
     getCurrentLocation().then(loc => {
         if (loc.lat && loc.lng) {
